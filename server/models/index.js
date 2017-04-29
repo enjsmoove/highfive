@@ -171,7 +171,7 @@ module.exports = {
         .query()
         .where('id', id)
         .then((company) => { cb(null, company); })
-        .catch((err) => { console.log(err); });
+        .catch((err) => { cb(err, null); });
     },
 
     createOne: async (body, cb) => {
@@ -186,11 +186,8 @@ module.exports = {
           .query()
           .insertAndFetch(body)
           .catch((err) => { cb(err, null); });
-
-        console.log("creating new");
         cb(null, newCompany);
       } else {
-        console.log('returning existing');
         cb(null, getCompany);
       }
     },
@@ -200,8 +197,8 @@ module.exports = {
         .query()
         .update(body)
         .where('id', id)
-        .then((company) => { cb(null, company) })
-        .catch(err => { console.log(err) })
+        .then((company) => { cb(null, company); })
+        .catch((err) => { cb(err, null); });
     },
     deleteCompany: (id, cb) => {
       Company
@@ -211,28 +208,25 @@ module.exports = {
         .catch((err) => { console.log(err); });
     },
     updatePicture: (id, body, cb) => {
-      console.log('body in index models', body)
       Company
         .query()
         .update(body)
         .where('id', id)
         .skipUndefined()
-        .then((result) => { cb(null, result) })
-        .catch(err => { console.log(err) });
+        .then((result) => { cb(null, result); })
+        .catch((err) => { cb(err, null); });
     }
   },
   jobposts: {
     getAllPage: (page, cb) => {
-      if (page < 1) {
-        page = 1;
-      }
+      if (!page) page = 1;
       Jobpost
         .query()
         .page(parseInt(page - 1), 10)
         .allowEager('[company, submission]')
         .eager('[company, submission]')
-        .then((jobposts) => { 
-          cb(null, jobposts); 
+        .then((jobposts) => {
+          cb(null, jobposts);
         })
         .catch((err) => { cb(err, null); });
     },
@@ -241,8 +235,8 @@ module.exports = {
         .query()
         .allowEager('[company]')
         .eager('company')
-        .then((jobposts) => cb(null, jobposts))
-        .catch((err) => cb(err, null));
+        .then(jobposts => cb(null, jobposts))
+        .catch(err => cb(err, null));
     },
     getById: (id, cb) => {
       Jobpost
@@ -259,7 +253,7 @@ module.exports = {
         .query()
         .insertAndFetch(body)
         .then((jobs) => { cb(null, jobs); })
-        .catch((err) => { console.log(err); });
+        .catch((err) => { cb(err, null); });
     },
     getJobPostsByCompany: (companyId, cb) => {
       Jobpost
@@ -268,7 +262,7 @@ module.exports = {
         .eager('[question]')
         .where('company_id', companyId)
         .then((jobs) => { cb(null, jobs); })
-        .catch((err) => { console.log(err); });
+        .catch((err) => { cb(err, null); });
     },
     updateJobPost: async (id, body, cb) => {
       const jobpost = await Jobpost
@@ -278,22 +272,21 @@ module.exports = {
         // .update(body)
         // .then((job) => { cb(null, job); })
         .catch((err) => { cb(err, null); });
-        const questions = body;
+      const questions = body;
 
-       let count = 0;
-       console.log('QUESTIONS IN INDEX MODELS', jobpost)
-       questions.forEach((question) => {
-         jobpost
-           .$relatedQuery('question')
-             .relate(question.id)
-             .catch((e) => {
-               cb(e, null);
-             });
-         count++;
-         if(count === questions.length){
-           cb(null, jobpost);
-          }
-       });
+      let count = 0;
+      questions.forEach((question) => {
+        jobpost
+          .$relatedQuery('question')
+            .relate(question.id)
+            .catch((e) => {
+              cb(e, null);
+            });
+        count++;
+        if(count === questions.length) {
+          cb(null, jobpost);
+        }
+      });
     },
 
     deleteJobPost: (postId, cb) => {
@@ -304,28 +297,10 @@ module.exports = {
         // .eager('[question]')
         .deleteById(postId)
         .then((jobs) => { cb(null, jobs); })
-        .catch( err => { console.log(err); });
+        .catch((err) => { cb(err, null); });
     }
   },
 
-  // submissions: {
-    // createOne: (body, cb) => {
-    //   Submission
-    //     .query()
-    //     .insertAndFetch(body)
-    //     .then((result) => { cb(null, result) })
-    //     .catch( err => { console.log(err) })
-    // },
-    // getByUserId: (user_id, cb) => {
-    //   Submission
-    //     .query()
-    //     .allowEager('[video]')
-    //     .eager('[video]')
-    //     .where('user_id', user_id)
-    //     .then((submission) => { cb(null, submission) })
-    //     .catch((err) => { cb(err, null); });
-    // }
-  // },
   submissions: {
     getAll: async (cb) => {
       const submissions = await Submission
@@ -382,17 +357,17 @@ module.exports = {
       Video
         .query()
         .insertAndFetch(body)
-        .then((video) => { cb(null, video) })
-        .catch( err => { console.log(err) })
+        .then((video) => { cb(null, video); })
+        .catch((err) => { console.log(err); });
     }
   },
 
-  questions: { 
+  questions: {
     getAll: (cb) => {
       Question
         .query()
-        .then((questions) => { cb(null, questions) })
-        .catch(err => { console.log(err) })
+        .then((questions) => { cb(null, questions); })
+        .catch((err) => { cb(err, null); });
     }
   },
 
@@ -400,8 +375,8 @@ module.exports = {
     getAll: (cb) => {
       Location
         .query()
-        .then((location) => { cb(null, location) })
-        .catch( err => { console.log(err) })
+        .then((location) => { cb(null, location); })
+        .catch((err) => { cb(err, null); });
     }
   },
 
@@ -410,7 +385,7 @@ module.exports = {
       Industry
         .query()
         .then((industry) => { cb(null, industry); })
-        .catch((err) => { console.log(err); });
+        .catch((err) => { cb(err, null); });
     }
   },
 
